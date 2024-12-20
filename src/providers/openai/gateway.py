@@ -1,5 +1,5 @@
 from typing import Any, Dict, Optional, Generator
-from openai import OpenAI
+from openai import NOT_GIVEN, OpenAI
 from ...types import EnumLLMProvider, LLMProvider, ChatCompletionParams
 
 class OpenAIGateway(LLMProvider):
@@ -11,11 +11,11 @@ class OpenAIGateway(LLMProvider):
         response = self.client.chat.completions.create(
             model=params.model,
             messages=[msg.__dict__ for msg in params.messages],
-            temperature=params.temperature,
-            max_tokens=params.max_tokens,
-            top_p=params.top_p,
-            tools=params.tools,
-            tool_choice=params.tool_choice
+            temperature=params.temperature or NOT_GIVEN,
+            max_completion_tokens=params.max_completion_tokens or NOT_GIVEN,
+            top_p=params.top_p or NOT_GIVEN,
+            tools=params.tools or NOT_GIVEN,
+            tool_choice=params.tool_choice or NOT_GIVEN
         )
 
         completion = response.choices[0]
@@ -36,11 +36,11 @@ class OpenAIGateway(LLMProvider):
         stream = self.client.chat.completions.create(
             model=params.model,
             messages=[msg.__dict__ for msg in params.messages],
-            temperature=params.temperature,
-            max_tokens=params.max_tokens,
-            top_p=params.top_p,
-            tools=params.tools,
-            tool_choice=params.tool_choice,
+            temperature=params.temperature or NOT_GIVEN,
+            max_completion_tokens=params.max_completion_tokens or NOT_GIVEN,
+            top_p=params.top_p or NOT_GIVEN,
+            tools=params.tools or NOT_GIVEN,
+            tool_choice=params.tool_choice or NOT_GIVEN,
             stream=True
         )
 

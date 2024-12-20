@@ -1,5 +1,5 @@
 from typing import Any, Dict, Optional, Generator
-from anthropic import Anthropic
+from anthropic import NOT_GIVEN, Anthropic
 from ...types import EnumLLMProvider, LLMProvider, ChatCompletionParams
 
 class AnthropicGateway(LLMProvider):
@@ -8,14 +8,15 @@ class AnthropicGateway(LLMProvider):
         self.client = Anthropic(api_key=api_key)
 
     def chat_completion(self, params: ChatCompletionParams) -> Dict[str, Any]:
+        messages = [{key: value for key, value in msg.__dict__.items() if key != 'name'} for msg in params.messages]
         response = self.client.messages.create(
             model=params.model,
-            messages=[msg.__dict__ for msg in params.messages],
-            temperature=params.temperature,
+            messages=messages,
             max_tokens=params.max_tokens,
-            top_p=params.top_p,
-            system=params.system,
-            tools=params.tools
+            temperature=params.temperature or NOT_GIVEN,
+            top_p=params.top_p or NOT_GIVEN,
+            system=params.system or NOT_GIVEN,
+            tools=params.tools or NOT_GIVEN
         )
 
         if response.stop_reason == 'tool_use':
@@ -33,33 +34,16 @@ class AnthropicGateway(LLMProvider):
         return response
 
     def chat_completion_stream(self, params: ChatCompletionParams) -> Generator[Dict[str, Any], None, None]:
+        messages = [{key: value for key, value in msg.__dict__.items() if key != 'name'} for msg in params.messages]
         stream = self.client.messages.create(
             model=params.model,
-            messages=[msg.__dict__ for msg in params.messages],
-            temperature=params.temperature,
+            messages=messages,
             max_tokens=params.max_tokens,
-            top_p=params.top_p,
-            system=params.system,
-            tools=params.tools,
+            temperature=params.temperature or NOT_GIVEN,
+            top_p=params.top_p or NOT_GIVEN,
+            system=params.system or NOT_GIVEN,
+            tools=params.tools or NOT_GIVEN,
             stream=True
         )
-
         for chunk in stream:
-            if hasattr(chunk, 'type'):
-                if chunk.type == 'content_block_start':
-                    chunk.llm_gateway_output = [{
-                        'type': 'text',
-                        'content': chunk.content_block.text
-                    }]
-                elif chunk.type == 'content_block_delta':
-                    chunk.llm_gateway_output = [{
-                        'type': 'text',
-                        'content': chunk.delta.text
-                    }]
-                elif chunk.type == 'tool_use':
-                    chunk.llm_gateway_output = [{
-                        'type': 'tool_calls',
-                        'tool_name': chunk.tool_calls[0].name,
-                        'arguments': chunk.tool_calls[0].input
-                    }]
             yield chunk
