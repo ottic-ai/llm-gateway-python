@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 
 [project]
-name = "llmgateway"
+name = "open_llm_gateway"
 version = "0.1.0"
 authors = [
   { name="Dmitry Sergeev", email="dmitry@ottic.ai" },
