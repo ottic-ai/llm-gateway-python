@@ -37,6 +37,7 @@ class ChatCompletionParams:
     tools: Optional[List[Dict[str, Any]]] = None
     tool_choice: Optional[Dict[str, Any]] = None
     max_tokens: Optional[int] = None
+    max_completion_tokens: Optional[int] = None
     system: Optional[Union[str, List[Dict[str, Any]]]] = None
     top_k: Optional[int] = None
     stop_sequences: Optional[List[str]] = None

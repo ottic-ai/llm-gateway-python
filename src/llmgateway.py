@@ -21,7 +21,7 @@ class LLMGateway:
         
         if config and config.fallbacks:
             log_info('Configuring fallback provider', {
-                'provider': config.fallbacks.get('fallback_provider', {}).get('provider'),
+                'provider': config.fallbacks.get('fallback_provider').provider,
                 'model': config.fallbacks.get('fallback_model')
             })
             self.fallback_provider = self._init_provider(config.fallbacks['fallback_provider'])
@@ -104,12 +104,13 @@ class LLMGateway:
         return base + jitter
 
     def _convert_params_for_provider(self, params: ChatCompletionParams) -> ChatCompletionParams:
-        messages = params.messages
-        if self.provider.name == EnumLLMProvider.ANTHROPIC and is_openai_format(messages[0].__dict__):
-            messages = convert_openai_to_anthropic([m.__dict__ for m in messages])
-        elif self.provider.name in [EnumLLMProvider.OPENAI, EnumLLMProvider.AZUREOPENAI] and is_anthropic_format(messages[0].__dict__):
-            messages = convert_anthropic_to_openai([m.__dict__ for m in messages])
-        return ChatCompletionParams(**{**params.__dict__, 'messages': messages})
+        if self.provider.name == EnumLLMProvider.ANTHROPIC:
+            if self.fallback_provider.name == EnumLLMProvider.OPENAI:
+                converted_params = convert_anthropic_to_openai(params)
+        elif self.provider.name == EnumLLMProvider.OPENAI:
+            if self.fallback_provider.name == EnumLLMProvider.ANTHROPIC:
+                converted_params = convert_openai_to_anthropic(params)
+        return converted_params
 
     def chat_completion(self, params: ChatCompletionParams) -> Any:
         try:
