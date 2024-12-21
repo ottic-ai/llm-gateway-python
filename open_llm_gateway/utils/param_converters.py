@@ -1,6 +1,6 @@
 from typing import Dict, Any, List, Optional, Union
 
-from src.types import ChatCompletionParams, Message
+from ..types import ChatCompletionParams, Message
 
 def is_openai_format(params: Dict[str, Any]) -> bool:
     return any(key in params for key in ['n', 'tools', 'tool_choice', 'response_format', 'max_completion_tokens'])
